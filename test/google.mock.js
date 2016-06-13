@@ -466,6 +466,11 @@
         google.visualization.ChartRangeFilter.prototype.applyFilter = function() {};
         google.visualization.ChartRangeFilter.prototype.getState = function() {};
         google.visualization.ChartRangeFilter.prototype.resetControl = function() {};
+        
+        /** @constructor */
+        google.visualization.Dashboard = function(container) {};
+        google.visualization.Dashboard.prototype.bind = function(control, _chartWrapper) {};
+        google.visualization.Dashboard.prototype.draw = function(data) {};
         return google;
     }
 })();

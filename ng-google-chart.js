@@ -1,4 +1,4 @@
-/*! angular-google-chart 2015-11-29 */
+/*! angular-google-chart 2016-06-13 */
 /*
 * @description Google Chart Api Directive Module for AngularJS
 * @version 0.1.0
@@ -20,23 +20,24 @@
     }
 })();
 /* global angular, google */
-(function(){
+(function () {
     angular.module('googlechart')
-        .factory('FormatManager', formatManagerFactory);
-        
-        function formatManagerFactory(){
-            // Handles the processing of Google Charts API Formats
-            function FormatManager($google){
-                var self = this;
-                var oldFormatTemplates = {};
-                self.iFormats = {}; // Holds instances of formats (ie. self.iFormats.date[0] = new $google.visualization.DateFormat(params))
-                self.applyFormats = applyFormats;
-                
-                // apply formats of type to datatable
-                function apply(tFormats, dataTable){
-                    var i, formatType;
-                    for (formatType in tFormats){
-                        if (tFormats.hasOwnProperty(formatType)){
+            .factory('FormatManager', formatManagerFactory);
+
+    function formatManagerFactory() {
+        // Handles the processing of Google Charts API Formats
+        function FormatManager($google) {
+            var self = this;
+            var oldFormatTemplates = {};
+            self.iFormats = {}; // Holds instances of formats (ie. self.iFormats.date[0] = new $google.visualization.DateFormat(params))
+            self.applyFormats = applyFormats;
+
+            // apply formats of type to datatable
+            function apply(tFormats, dataTable) {
+                var i, formatType;
+                for (formatType in tFormats) {
+                    if (tFormats.hasOwnProperty(formatType)) {
+                        if (self.iFormats[formatType]) {
                             for (i = 0; i < self.iFormats[formatType].length; i++) {
                                 if (tFormats[formatType][i].columnNum < dataTable.getNumberOfColumns()) {
                                     self.iFormats[formatType][i].format(dataTable, tFormats[formatType][i].columnNum);
@@ -45,85 +46,86 @@
                         }
                     }
                 }
-                
-                function applyFormat(formatType, FormatClass, tFormats){
-                    var i;
-                    if (angular.isArray(tFormats[formatType])) {
-                        // basic change detection; no need to run if no changes
-                        if (!angular.equals(tFormats[formatType], oldFormatTemplates[formatType])) {
-                            oldFormatTemplates[formatType] = tFormats[formatType];
-                            self.iFormats[formatType] = [];
-            
-                            if (formatType === 'color') {
-                                instantiateColorFormatters(tFormats);
-                            } else {
-                                for (i = 0; i < tFormats[formatType].length; i++) {
-                                    self.iFormats[formatType].push(new FormatClass(
+            }
+
+            function applyFormat(formatType, FormatClass, tFormats) {
+                var i;
+                if (angular.isArray(tFormats[formatType])) {
+                    // basic change detection; no need to run if no changes
+                    if (!angular.equals(tFormats[formatType], oldFormatTemplates[formatType])) {
+                        oldFormatTemplates[formatType] = tFormats[formatType];
+                        self.iFormats[formatType] = [];
+
+                        if (formatType === 'color') {
+                            instantiateColorFormatters(tFormats);
+                        } else {
+                            for (i = 0; i < tFormats[formatType].length; i++) {
+                                self.iFormats[formatType].push(new FormatClass(
                                         tFormats[formatType][i])
-                                    );
-                                }
+                                        );
                             }
                         }
                     }
-                }
-                
-                function applyFormats(dataTable, tFormats, customFormatters) {
-                    var formatType, FormatClass, requiresHtml = false;
-                    if (!angular.isDefined(tFormats) || !angular.isDefined(dataTable)){
-                        return { requiresHtml: false };
-                    }
-                    for (formatType in tFormats){
-                        if (tFormats.hasOwnProperty(formatType)){
-                            FormatClass = getFormatClass(formatType, customFormatters);
-                            if (!angular.isFunction(FormatClass)){
-                                // if no class constructor was returned,
-                                // there's no point in completing cycle
-                                continue;
-                            }
-                            applyFormat(formatType, FormatClass, tFormats);
-                            
-                            //Many formatters require HTML tags to display special formatting
-                            if (formatType === 'arrow' || formatType === 'bar' || formatType === 'color') {
-                                requiresHtml = true;
-                            }
-                        }
-                    }
-                    apply(tFormats, dataTable);
-                    return { requiresHtml: requiresHtml };
-                }
-                
-                function instantiateColorFormatters(tFormats){
-                    var t, colorFormat, i, data, formatType = 'color';
-                    for (t = 0; t < tFormats[formatType].length; t++) {
-                        colorFormat = new $google.visualization.ColorFormat();
-
-                        for (i = 0; i < tFormats[formatType][t].formats.length; i++) {
-                            data = tFormats[formatType][t].formats[i];
-
-                            if (typeof (data.fromBgColor) !== 'undefined' && typeof (data.toBgColor) !== 'undefined') {
-                                colorFormat.addGradientRange(data.from, data.to, data.color, data.fromBgColor, data.toBgColor);
-                            } else {
-                                colorFormat.addRange(data.from, data.to, data.color, data.bgcolor);
-                            }
-                        }
-
-                        self.iFormats[formatType].push(colorFormat);
-                    }
-                }
-                
-                function getFormatClass(formatType, customFormatters){
-                    var className = formatType.charAt(0).toUpperCase() + formatType.slice(1).toLowerCase() + "Format";
-                    if ($google.visualization.hasOwnProperty(className)){
-                        return google.visualization[className];
-                    } else if (angular.isDefined(customFormatters) && customFormatters.hasOwnProperty(formatType)) {
-                        return customFormatters[formatType];
-                    }
-                    return;
                 }
             }
-            
-            return FormatManager;
+
+            function applyFormats(dataTable, tFormats, customFormatters) {
+                var formatType, FormatClass, requiresHtml = false;
+                if (!angular.isDefined(tFormats) || !angular.isDefined(dataTable)) {
+                    return {requiresHtml: false};
+                }
+                for (formatType in tFormats) {
+                    if (tFormats.hasOwnProperty(formatType)) {
+                        FormatClass = getFormatClass(formatType, customFormatters);
+                        if (!angular.isFunction(FormatClass)) {
+                            // if no class constructor was returned,
+                            // there's no point in completing cycle
+                            continue;
+                        }
+                        applyFormat(formatType, FormatClass, tFormats);
+
+                        //Many formatters require HTML tags to display special formatting
+                        if (formatType === 'arrow' || formatType === 'bar' || formatType === 'color') {
+                            requiresHtml = true;
+                        }
+                    }
+                }
+                apply(tFormats, dataTable);
+                return {requiresHtml: requiresHtml};
+            }
+
+            function instantiateColorFormatters(tFormats) {
+                var t, colorFormat, i, data, formatType = 'color';
+                for (t = 0; t < tFormats[formatType].length; t++) {
+                    colorFormat = new $google.visualization.ColorFormat();
+
+                    for (i = 0; i < tFormats[formatType][t].formats.length; i++) {
+                        data = tFormats[formatType][t].formats[i];
+
+                        if (typeof (data.fromBgColor) !== 'undefined' && typeof (data.toBgColor) !== 'undefined') {
+                            colorFormat.addGradientRange(data.from, data.to, data.color, data.fromBgColor, data.toBgColor);
+                        } else {
+                            colorFormat.addRange(data.from, data.to, data.color, data.bgcolor);
+                        }
+                    }
+
+                    self.iFormats[formatType].push(colorFormat);
+                }
+            }
+
+            function getFormatClass(formatType, customFormatters) {
+                var className = formatType.charAt(0).toUpperCase() + formatType.slice(1).toLowerCase() + "Format";
+                if ($google.visualization.hasOwnProperty(className)) {
+                    return google.visualization[className];
+                } else if (angular.isDefined(customFormatters) && customFormatters.hasOwnProperty(formatType)) {
+                    return customFormatters[formatType];
+                }
+                return;
+            }
         }
+
+        return FormatManager;
+    }
 })();
 /* global angular, google */
 
@@ -196,7 +198,8 @@
             self.chart.view,
             self.chart.options,
             self.chart.formatters,
-            self.chart.customFormatters);
+            self.chart.customFormatters,
+            self.chart.dashboardOptions);
 
             $timeout(drawChartWrapper);
         }
@@ -356,6 +359,37 @@
     }
 })();
 /* global angular */
+
+(function(){
+    angular.module('googlechart')
+        .directive('agcOnRangeChange', agcOnRangeChangeDirective);
+
+    function agcOnRangeChangeDirective(){
+        return {
+            restrict: 'A',
+            scope: false,
+            require: 'googleChart',
+            link: function(scope, element, attrs, googleChartController){
+                callback.$inject = ['args', 'chart', 'chartWrapper'];
+                function callback(args, chart, chartWrapper){
+                    var returnParams = {
+                        chartWrapper: chartWrapper,
+                        chart: chart,
+                        args: args,
+                        start: args[0].start,
+                        end: args[0].end
+                    };
+                    scope.$apply(function () {
+                        scope.$eval(attrs.agcOnRangeChange, returnParams);
+                    });
+                }
+                googleChartController.registerChartListener('rangechange', callback, this);
+            }
+        };
+    }
+})();
+
+/* global angular */
 (function(){
     angular.module('googlechart')
         .directive('agcOnReady', onReadyDirective);
@@ -428,7 +462,7 @@
         .value('googleChartApiConfig', {
             version: '1',
             optionalSettings: {
-                packages: ['corechart']
+                packages: ['corechart', 'controls']
             }
         });
 })();
@@ -483,9 +517,9 @@
     }
 })();
 /* global angular */
-(function() {
+(function () {
     angular.module('googlechart')
-        .factory('GoogleChartService', GoogleChartServiceFactory);
+            .factory('GoogleChartService', GoogleChartServiceFactory);
 
     GoogleChartServiceFactory.$inject = ['googleChartApiPromise', '$injector', '$q', 'FormatManager'];
 
@@ -512,23 +546,24 @@
             self.setView = setView;
 
             var $google,
-                _apiPromise,
-                _apiReady,
-                _chartWrapper,
-                _element,
-                _chartType,
-                _data,
-                _view,
-                _options,
-                _formatters,
-                _innerVisualization,
-                _formatManager,
-                _needsUpdate = true,
-                _customFormatters,
-                _serviceDeferred,
-                serviceListeners = {},
-                wrapperListeners = {},
-                chartListeners = {};
+                    _apiPromise,
+                    _apiReady,
+                    _chartWrapper,
+                    _element,
+                    _chartType,
+                    _data,
+                    _view,
+                    _options,
+                    _formatters,
+                    _innerVisualization,
+                    _formatManager,
+                    _needsUpdate = true,
+                    _customFormatters,
+                    _serviceDeferred,
+                    _dashboardOptions = {},
+                    serviceListeners = {},
+                    wrapperListeners = {},
+                    chartListeners = {};
 
             _init();
 
@@ -566,8 +601,7 @@
                         containerId: _element[0]
                     });
                     _registerListenersWithGoogle(_chartWrapper, wrapperListeners);
-                }
-                else {
+                } else {
                     _chartWrapper.setChartType(_chartType);
                     _chartWrapper.setDataTable(_data);
                     _chartWrapper.setView(_view);
@@ -625,8 +659,8 @@
                 _serviceDeferred = $q.defer();
                 //keeps the resulting promise to chain on other actions
                 _apiPromise = googleChartApiPromise
-                    .then(_apiLoadSuccess)
-                    .catch(_apiLoadFail);
+                        .then(_apiLoadSuccess)
+                        .catch(_apiLoadFail);
 
                 registerWrapperListener('ready', _handleReady, self);
             }
@@ -635,7 +669,7 @@
                 // This is the function that will be invoked by the charts API.
                 // Passing the wrapper function allows the use of DI for
                 // for the called function.
-                var listenerWrapper = function() {
+                var listenerWrapper = function () {
                     var locals = {
                         chartWrapper: _chartWrapper,
                         chart: _chartWrapper.getChart(),
@@ -649,7 +683,7 @@
                         listenerCollection[eventName] = [];
                     }
                     listenerCollection[eventName].push(listenerWrapper);
-                    return function() {
+                    return function () {
                         if (angular.isDefined(listenerWrapper.googleListenerHandle)) {
                             $google.visualization.events.removeListener(listenerWrapper.googleListenerHandle);
                         }
@@ -668,7 +702,7 @@
                         for (var fnIterator = 0; fnIterator < listenerCollection[eventName].length; fnIterator++) {
                             if (angular.isFunction(listenerCollection[eventName][fnIterator])) {
                                 listenerCollection[eventName][fnIterator].googleListenerHandle =
-                                    $google.visualization.events.addListener(eventSource, eventName, listenerCollection[eventName][fnIterator]);
+                                        $google.visualization.events.addListener(eventSource, eventName, listenerCollection[eventName][fnIterator]);
                             }
                         }
                     }
@@ -677,15 +711,35 @@
 
             function _runDrawCycle() {
                 _activateServiceEvent('beforeDraw');
-                _chartWrapper.draw();
+                if (_data && _dashboardOptions) {
+                    var dashboard = new google.visualization.Dashboard(
+                            document.getElementById(_dashboardOptions.dashboardTarget));
+                    var control = new google.visualization.ControlWrapper({
+                        'controlType': _dashboardOptions.controlType,
+                        'containerId': _dashboardOptions.controlTarget,
+                        'options': _dashboardOptions.controlOptions
+                    });
+                    google.visualization.events.addListener(control, 'statechange', function () {
+                        var state = control.getState();
+                        var callback = _dashboardOptions.stateChangeListener;
+                        if (callback && (typeof callback === "function")) {
+                            callback(state);
+                        }
+                    });
+
+                    dashboard.bind(control, _chartWrapper);
+                    dashboard.draw(_data);
+                } else {
+                    _chartWrapper.draw();
+                }
             }
 
             /*
-            This function does this:
-                - waits for API to load, if not already loaded
-                - sets up ChartWrapper object (create or update)
-                - schedules timeout event to draw chart
-            */
+             This function does this:
+             - waits for API to load, if not already loaded
+             - sets up ChartWrapper object (create or update)
+             - schedules timeout event to draw chart
+             */
             function draw() {
                 if (_needsUpdate) {
                     _apiPromise = _apiPromise.then(_continueSetup);
@@ -773,7 +827,7 @@
                 }
             }
 
-            function setup(element, chartType, data, view, options, formatters, customFormatters) {
+            function setup(element, chartType, data, view, options, formatters, customFormatters, dashboardOptions) {
                 // Keep values if already set,
                 // can call setup() with nulls to keep
                 // existing values
@@ -784,6 +838,7 @@
                 _options = options || _options;
                 _formatters = formatters || _formatters;
                 _customFormatters = customFormatters || _customFormatters;
+                _dashboardOptions = dashboardOptions || _dashboardOptions;
 
                 _apiPromise = _apiPromise.then(_continueSetup);
             }
@@ -817,3 +872,4 @@
         };
     }
 })();
+//# sourceMappingURL=ng-google-chart.js.map

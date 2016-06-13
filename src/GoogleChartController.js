@@ -69,7 +69,8 @@
             self.chart.view,
             self.chart.options,
             self.chart.formatters,
-            self.chart.customFormatters);
+            self.chart.customFormatters,
+            self.chart.dashboardOptions);
 
             $timeout(drawChartWrapper);
         }

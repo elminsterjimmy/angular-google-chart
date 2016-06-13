@@ -1,7 +1,7 @@
 /* global angular */
-(function() {
+(function () {
     angular.module('googlechart')
-        .factory('GoogleChartService', GoogleChartServiceFactory);
+            .factory('GoogleChartService', GoogleChartServiceFactory);
 
     GoogleChartServiceFactory.$inject = ['googleChartApiPromise', '$injector', '$q', 'FormatManager'];
 
@@ -28,23 +28,24 @@
             self.setView = setView;
 
             var $google,
-                _apiPromise,
-                _apiReady,
-                _chartWrapper,
-                _element,
-                _chartType,
-                _data,
-                _view,
-                _options,
-                _formatters,
-                _innerVisualization,
-                _formatManager,
-                _needsUpdate = true,
-                _customFormatters,
-                _serviceDeferred,
-                serviceListeners = {},
-                wrapperListeners = {},
-                chartListeners = {};
+                    _apiPromise,
+                    _apiReady,
+                    _chartWrapper,
+                    _element,
+                    _chartType,
+                    _data,
+                    _view,
+                    _options,
+                    _formatters,
+                    _innerVisualization,
+                    _formatManager,
+                    _needsUpdate = true,
+                    _customFormatters,
+                    _serviceDeferred,
+                    _dashboardOptions = {},
+                    serviceListeners = {},
+                    wrapperListeners = {},
+                    chartListeners = {};
 
             _init();
 
@@ -82,8 +83,7 @@
                         containerId: _element[0]
                     });
                     _registerListenersWithGoogle(_chartWrapper, wrapperListeners);
-                }
-                else {
+                } else {
                     _chartWrapper.setChartType(_chartType);
                     _chartWrapper.setDataTable(_data);
                     _chartWrapper.setView(_view);
@@ -141,8 +141,8 @@
                 _serviceDeferred = $q.defer();
                 //keeps the resulting promise to chain on other actions
                 _apiPromise = googleChartApiPromise
-                    .then(_apiLoadSuccess)
-                    .catch(_apiLoadFail);
+                        .then(_apiLoadSuccess)
+                        .catch(_apiLoadFail);
 
                 registerWrapperListener('ready', _handleReady, self);
             }
@@ -151,7 +151,7 @@
                 // This is the function that will be invoked by the charts API.
                 // Passing the wrapper function allows the use of DI for
                 // for the called function.
-                var listenerWrapper = function() {
+                var listenerWrapper = function () {
                     var locals = {
                         chartWrapper: _chartWrapper,
                         chart: _chartWrapper.getChart(),
@@ -165,7 +165,7 @@
                         listenerCollection[eventName] = [];
                     }
                     listenerCollection[eventName].push(listenerWrapper);
-                    return function() {
+                    return function () {
                         if (angular.isDefined(listenerWrapper.googleListenerHandle)) {
                             $google.visualization.events.removeListener(listenerWrapper.googleListenerHandle);
                         }
@@ -184,7 +184,7 @@
                         for (var fnIterator = 0; fnIterator < listenerCollection[eventName].length; fnIterator++) {
                             if (angular.isFunction(listenerCollection[eventName][fnIterator])) {
                                 listenerCollection[eventName][fnIterator].googleListenerHandle =
-                                    $google.visualization.events.addListener(eventSource, eventName, listenerCollection[eventName][fnIterator]);
+                                        $google.visualization.events.addListener(eventSource, eventName, listenerCollection[eventName][fnIterator]);
                             }
                         }
                     }
@@ -193,15 +193,35 @@
 
             function _runDrawCycle() {
                 _activateServiceEvent('beforeDraw');
-                _chartWrapper.draw();
+                if (_data && _dashboardOptions) {
+                    var dashboard = new google.visualization.Dashboard(
+                            document.getElementById(_dashboardOptions.dashboardTarget));
+                    var control = new google.visualization.ControlWrapper({
+                        'controlType': _dashboardOptions.controlType,
+                        'containerId': _dashboardOptions.controlTarget,
+                        'options': _dashboardOptions.controlOptions
+                    });
+                    google.visualization.events.addListener(control, 'statechange', function () {
+                        var state = control.getState();
+                        var callback = _dashboardOptions.stateChangeListener;
+                        if (callback && (typeof callback === "function")) {
+                            callback(state);
+                        }
+                    });
+
+                    dashboard.bind(control, _chartWrapper);
+                    dashboard.draw(_data);
+                } else {
+                    _chartWrapper.draw();
+                }
             }
 
             /*
-            This function does this:
-                - waits for API to load, if not already loaded
-                - sets up ChartWrapper object (create or update)
-                - schedules timeout event to draw chart
-            */
+             This function does this:
+             - waits for API to load, if not already loaded
+             - sets up ChartWrapper object (create or update)
+             - schedules timeout event to draw chart
+             */
             function draw() {
                 if (_needsUpdate) {
                     _apiPromise = _apiPromise.then(_continueSetup);
@@ -289,7 +309,7 @@
                 }
             }
 
-            function setup(element, chartType, data, view, options, formatters, customFormatters) {
+            function setup(element, chartType, data, view, options, formatters, customFormatters, dashboardOptions) {
                 // Keep values if already set,
                 // can call setup() with nulls to keep
                 // existing values
@@ -300,6 +320,7 @@
                 _options = options || _options;
                 _formatters = formatters || _formatters;
                 _customFormatters = customFormatters || _customFormatters;
+                _dashboardOptions = dashboardOptions || _dashboardOptions;
 
                 _apiPromise = _apiPromise.then(_continueSetup);
             }
